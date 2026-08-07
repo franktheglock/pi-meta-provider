@@ -1,0 +1,14 @@
+# Never commit API keys or local config
+.env
+.env.*
+*.local.json
+tinyfish.json
+
+# deps / build
+node_modules/
+dist/
+out/
+
+# system
+.DS_Store
+Thumbs.db
