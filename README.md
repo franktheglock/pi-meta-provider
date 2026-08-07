@@ -1,71 +1,59 @@
 # pi-meta-provider
 
-**Meta (Muse Spark) provider for [pi](https://pi.dev)** — `api.meta.ai` via the OpenAI-compatible Chat Completions API.
-
-Ships Muse Spark reasoning models: 1M-token context, streaming, tool calls, image input, and `reasoning_effort` (minimal → xhigh). Private reasoning stays private; reasoning tokens bill at the output rate and count toward the 131K output cap.
+[Meta Model API](https://dev.meta.ai/docs/overview) provider extension for [pi](https://pi.dev). Adds Meta's **Muse Spark** models — Meta's family for agentic and coding workflows — to pi through the OpenAI-compatible Chat Completions endpoint.
 
 ## Models
 
-| Model | Context | Max output | Tier | Pricing (per 1M) |
-|-------|---------|------------|------|------------------|
-| `muse-spark-1.1` | 1,048,576 | 131,072 | Standard | $1.25 in · $0.15 cached · $4.25 out |
-| `muse-spark-1.2` | 1,048,576 | 131,072 | Standard | $1.25 in · $0.15 cached · $4.25 out |
-| `muse-spark-1.2-contributor` | 1,048,576 | 131,072 | Contributor | $0.10 in · $0.002 cached · $0.20 out |
+| Model | Tier | Context | Price (in/out/cached, per 1M tokens) |
+| --- | --- | --- | --- |
+| `muse-spark-1.1` | Standard | 1,048,576 | $1.25 / $4.25 / $0.15 |
+| `muse-spark-1.2` | Standard | 1,048,576 | $1.25 / $4.25 / $0.15 |
+| `muse-spark-1.2-contributor` | Contributor | 1,048,576 | $0.10 / $0.20 / $0.002 |
 
-No long-context premium. Web search grounding ($2.50 / 1K queries), files API, and prompt caching are available server-side; reasoning replay across turns on Chat Completions is intentionally empty (use the Responses API directly if you need encrypted reasoning continuity).
+All Muse Spark models support up to 131,072 output tokens and always reason — `reasoning_effort` maps to pi's thinking levels (`minimal` → `xhigh`; "off" omits the parameter since `"none"` is rejected by the API).
 
 ## Install
+
+Set your API key (create one in the [Model API dashboard](https://dev.meta.ai/)):
+
+```bash
+export MODEL_API_KEY="LLM|..."
+```
+
+### As an extension (auto-discovered)
+
+```bash
+mkdir -p ~/.pi/agent/extensions
+git clone https://github.com/franktheglock/pi-meta-provider ~/.pi/agent/extensions/pi-meta-provider
+```
+
+### As a pi package
 
 ```bash
 pi install git:github.com/franktheglock/pi-meta-provider
 ```
 
-Or try without installing (current run only):
+## Usage
 
 ```bash
-pi -e git:github.com/franktheglock/pi-meta-provider
+pi --model meta/muse-spark-1.2
 ```
 
-Select a model with `/model` (look for `meta/muse-spark-…`) or `--model meta/muse-spark-1.2`.
+Select it any time with `/model`, and dial reasoning with the thinking-level controls (e.g. `/thinking high`).
 
-## Auth
+## How it works
 
-Get an API key at **[dev.meta.ai → dashboard → API keys → Create key](https://dev.meta.ai)** (stored as `MODEL_API_KEY` in Meta's own docs). Same key works for [Muse Code](https://ai.developer.meta.com/docs/muse-code), OpenCode, and the API.
+The extension registers the `meta` provider via `pi.registerProvider()`:
 
-**Option A — `/login` (recommended):**
+- **API**: `openai-completions` — pi streams over `POST /v1/chat/completions` (SSE), the protocol Meta documents as drop-in compatible with OpenAI clients and agent CLIs.
+- **Auth**: `Authorization: Bearer` from `MODEL_API_KEY`.
+- **Reasoning**: `reasoning_effort` sent at the top level, mapped from pi's thinking levels via `thinkingLevelMap`.
+- **Compatibility flags**: `supportsDeveloperRole` (Meta's `developer` instruction role), `maxTokensField: "max_completion_tokens"`, `supportsLongCacheRetention` (sends `prompt_cache_retention: "24h"` when long retention is enabled), and `supportsReasoningEffort`.
+- **Costs**: per-tier pricing with `prompt_tokens_details.cached_tokens` reported as cache reads.
 
-In pi, run:
+## Resources
 
-```
-/login meta
-```
-
-Paste the key when prompted. Stored in `~/.pi/agent/auth.json`.
-
-**Option B — environment variable:**
-
-```bash
-# primary (Meta's documented var)
-export MODEL_API_KEY="sk-..."
-# alternate
-export META_API_KEY="sk-..."
-```
-
-Optional proxy override:
-
-```bash
-export META_BASE_URL="https://your-proxy.example.com/v1"
-```
-
-Verify auth:
-
-```bash
-MODEL_API_KEY="..." pi --list-models | grep meta
-# or in pi: /model -> filter "meta"
-```
-
-## Link
-
-I built this while exploring the project above: `https://dev.meta.ai/docs/overview/?team_id=1546437390301451&project_id=1576060060667031`
-
-*Not affiliated with Meta. Muse Spark via Meta Model API.*
+- [Meta Model API overview](https://dev.meta.ai/docs/overview)
+- [Chat Completions protocol](https://dev.meta.ai/docs/protocols/chat-completions)
+- [Pricing and rate limits](https://dev.meta.ai/docs/pricing-rate-limits)
+- [pi custom providers](https://github.com/earendil-works/pi-mono/blob/main/packages/docs/custom-provider.md)

@@ -1,16 +1,14 @@
 {
   "name": "pi-meta-provider",
   "version": "1.0.0",
-  "description": "Meta Muse Spark provider for pi — 1M-context reasoning models via api.meta.ai (OpenAI-compatible)",
-  "keywords": ["pi-package", "pi-provider", "meta", "muse-spark", "muse", "api-meta-ai"],
+  "description": "Meta Model API (Muse Spark) provider extension for pi",
+  "keywords": ["pi-package"],
   "license": "MIT",
-  "type": "module",
-  "private": false,
-  "pi": {
-    "extensions": ["./extensions"]
-  },
   "peerDependencies": {
     "@earendil-works/pi-ai": "*",
     "@earendil-works/pi-coding-agent": "*"
+  },
+  "pi": {
+    "extensions": ["./extensions"]
   }
 }
