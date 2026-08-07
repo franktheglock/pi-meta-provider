@@ -1,5 +1,4 @@
-import { createProvider, openAICompletionsApi } from "@earendil-works/pi-ai";
-import { envApiKeyAuth } from "@earendil-works/pi-ai/dist/auth/helpers.js";
+import { createProvider, envApiKeyAuth, openAICompletionsApi } from "@earendil-works/pi-ai";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 /**
@@ -50,6 +49,45 @@ const compat = {
   supportsLongCacheRetention: true,
 } as const;
 
+const models = [
+  {
+    id: "muse-spark-1.1",
+    name: "Muse Spark 1.1",
+    provider: "meta",
+    reasoning: true,
+    thinkingLevelMap,
+    input: ["text", "image"],
+    cost: { input: 1.25, output: 4.25, cacheRead: 0.15, cacheWrite: 0.15 },
+    contextWindow: 1_048_576,
+    maxTokens: 131_072,
+    compat,
+  },
+  {
+    id: "muse-spark-1.2",
+    name: "Muse Spark 1.2",
+    provider: "meta",
+    reasoning: true,
+    thinkingLevelMap,
+    input: ["text", "image"],
+    cost: { input: 1.25, output: 4.25, cacheRead: 0.15, cacheWrite: 0.15 },
+    contextWindow: 1_048_576,
+    maxTokens: 131_072,
+    compat,
+  },
+  {
+    id: "muse-spark-1.2-contributor",
+    name: "Muse Spark 1.2 Contributor",
+    provider: "meta",
+    reasoning: true,
+    thinkingLevelMap,
+    input: ["text", "image"],
+    cost: { input: 0.1, output: 0.2, cacheRead: 0.002, cacheWrite: 0.002 },
+    contextWindow: 1_048_576,
+    maxTokens: 131_072,
+    compat,
+  },
+];
+
 export default function (pi: ExtensionAPI) {
   pi.registerProvider(
     createProvider({
@@ -59,41 +97,7 @@ export default function (pi: ExtensionAPI) {
       auth: {
         apiKey: envApiKeyAuth("Meta Model API key", ["MODEL_API_KEY", "META_API_KEY"]),
       },
-      models: [
-        {
-          id: "muse-spark-1.1",
-          name: "Muse Spark 1.1",
-          reasoning: true,
-          thinkingLevelMap,
-          input: ["text", "image"],
-          cost: { input: 1.25, output: 4.25, cacheRead: 0.15, cacheWrite: 0.15 },
-          contextWindow: 1_048_576,
-          maxTokens: 131_072,
-          compat,
-        },
-        {
-          id: "muse-spark-1.2",
-          name: "Muse Spark 1.2",
-          reasoning: true,
-          thinkingLevelMap,
-          input: ["text", "image"],
-          cost: { input: 1.25, output: 4.25, cacheRead: 0.15, cacheWrite: 0.15 },
-          contextWindow: 1_048_576,
-          maxTokens: 131_072,
-          compat,
-        },
-        {
-          id: "muse-spark-1.2-contributor",
-          name: "Muse Spark 1.2 Contributor",
-          reasoning: true,
-          thinkingLevelMap,
-          input: ["text", "image"],
-          cost: { input: 0.1, output: 0.2, cacheRead: 0.002, cacheWrite: 0.002 },
-          contextWindow: 1_048_576,
-          maxTokens: 131_072,
-          compat,
-        },
-      ],
+      models,
       api: openAICompletionsApi(),
     }),
   );
